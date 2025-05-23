@@ -1,4 +1,3 @@
-FROM openjdk:11
-COPY HelloWorld.java /
-RUN javac HelloWorld.java
-CMD ["java", "HelloWorld"]
+# Dockerfile
+FROM willhallonline/ansible:latest
+RUN apk add --no-cache docker-cli

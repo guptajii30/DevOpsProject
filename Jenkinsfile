@@ -2,13 +2,13 @@ pipeline {
     agent any
     
     environment {
-        // Docker image details
+        // Docker configurations
         DOCKER_IMAGE = 'javaimg'
         CONTAINER_NAME = 'java_container'
         
-        // Workspace paths (for reference)
+        // Workspace paths
         WIN_WORKSPACE = "${WORKSPACE}"
-        WSL_WORKSPACE = '/mnt/c/ProgramData/Jenkins/.jenkins/workspace/DevOpsPipeline'
+        CONTAINER_WORKSPACE = "/ansible"
     }
 
     stages {
@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     bat "docker build -t ${DOCKER_IMAGE} ."
-                    bat "docker images"  // Verification
+                    bat "docker images"  // Verify image creation
                 }
             }
         }
@@ -24,18 +24,26 @@ pipeline {
         stage('Deploy with Ansible') {
             steps {
                 script {
-                    docker.image('willhallonline/ansible:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
-                        sh '''
-                        echo "Current directory: $(pwd)"
-                        ls -la
+                    docker.image('willhallonline/ansible:latest').inside(
+                        "-v /var/run/docker.sock:/var/run/docker.sock " +
+                        "-v ${WIN_WORKSPACE}:${CONTAINER_WORKSPACE}"
+                    ) {
+                        sh """
+                        echo "=== DEBUG INFORMATION ==="
+                        echo "Current directory: \$(pwd)"
+                        echo "Workspace contents:"
+                        ls -la ${CONTAINER_WORKSPACE}
+                        echo "========================"
+                        cd ${CONTAINER_WORKSPACE}
                         ansible-playbook devopsdeploy.yml -vvv
-                        '''
+                        """
                     }
                 }
             }
             post {
                 always {
                     script {
+                        echo "=== DEPLOYMENT VERIFICATION ==="
                         bat "docker ps -a"
                         bat "docker logs ${CONTAINER_NAME} || echo 'Container not found'"
                     }
@@ -47,8 +55,9 @@ pipeline {
     post {
         always {
             script {
-                // Cleanup if needed
-                bat "docker rm -f ${CONTAINER_NAME} || true"
+                echo "=== CLEANUP ==="
+                bat "docker rm -f ${CONTAINER_NAME} || echo 'No container to remove'"
+                bat "docker image prune -f || echo 'No images to prune'"
             }
         }
     }

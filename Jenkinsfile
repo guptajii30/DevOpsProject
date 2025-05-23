@@ -15,14 +15,11 @@ pipeline {
             }
         }
         
-        stage('Deploy with Ansible') {
-            steps {
-                script {
-                    // Execute as your WSL user with proper path
-                    bat """
-                    wsl -u ganesh -e bash -c \
-                    'cd ${WSL_WORKSPACE} && ansible-playbook devopsdeploy.yml'
-                    """
+      stage('Deploy with Ansible') {
+    steps {
+        script {
+            docker.image('willhallonline/ansible:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+                sh 'ansible-playbook devopsdeploy.yml'
                 }
             }
         }

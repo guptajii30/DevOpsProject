@@ -3,24 +3,24 @@
   connection: local
   tasks:
     - name: Stop and remove old container
-      command: docker rm -f java_container
+      command: /usr/bin/docker rm -f java_container
       ignore_errors: yes
       changed_when: false
 
     - name: Run new container
-      command: docker run -d --name java_container javaimg
+      command: /usr/bin/docker run -d --name java_container javaimg
       args:
         chdir: "{{ ansible_user_dir }}"
 
     - name: Verify container status
-      command: docker ps --filter name=java_container --format "{{ '{{' }}.Status{{ '}}' }}"
+      command: /usr/bin/docker ps --filter name=java_container --format "{{ '{{' }}.Status{{ '}}' }}"
       register: container_status
       until: "'Up' in container_status.stdout"
       retries: 5
       delay: 2
 
     - name: Show container logs
-      command: docker logs java_container
+      command: /usr/bin/docker logs java_container
       register: container_logs
       changed_when: false
 

@@ -1,21 +1,28 @@
-- name: Deploy Java App on Docker
+- name: Deploy Java App
   hosts: localhost
   tasks:
-    - name: Stop existing Docker container
-      command: docker stop java_container
+    - name: Stop and remove old container
+      command: docker rm -f java_container
       ignore_errors: yes
-      
-    - name: Remove existing Docker container
-      command: docker rm java_container
-      ignore_errors: yes
-      
-    - name: Run new Docker container
-      command: docker run --name java_container -d javaimg:latest
-      
-    - name: Get container logs
+      changed_when: false
+
+    - name: Run new container
+      command: docker run -d --name java_container javaimg
+      args:
+        chdir: "/mnt/c/Users/ganes/DevOpsProject"
+
+    - name: Verify container
+      command: docker ps --filter name=java_container --format "{% raw %}{{.Status}}{% endraw %}"
+      register: container_status
+      until: "'Up' in container_status.stdout"
+      retries: 5
+      delay: 2
+
+    - name: Show logs
       command: docker logs java_container
       register: container_logs
-      
-    - name: Display container output
+      changed_when: false
+
+    - name: Display output
       debug:
-        msg: "{{ container_logs.stdout_lines }}"
+        msg: "Container output: {{ container_logs.stdout_lines }}"

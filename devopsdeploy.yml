@@ -1,5 +1,6 @@
 - name: Deploy Java App
   hosts: localhost
+  connection: local  # This tells Ansible to use local execution instead of SSH
   tasks:
     - name: Stop and remove old container
       command: docker rm -f java_container
@@ -9,16 +10,16 @@
     - name: Run new container
       command: docker run -d --name java_container javaimg
       args:
-        chdir: "/mnt/c/Users/ganes/DevOpsProject"
+        chdir: "{{ ansible_user_dir }}"
 
-    - name: Verify container
-      command: docker ps --filter name=java_container --format "{% raw %}{{.Status}}{% endraw %}"
+    - name: Verify container status
+      command: docker ps --filter name=java_container --format "{{ '{{' }}.Status{{ '}}' }}"
       register: container_status
       until: "'Up' in container_status.stdout"
       retries: 5
       delay: 2
 
-    - name: Show logs
+    - name: Show container logs
       command: docker logs java_container
       register: container_logs
       changed_when: false

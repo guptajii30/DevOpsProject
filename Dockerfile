@@ -1,3 +1,4 @@
-# Dockerfile
 FROM willhallonline/ansible:latest
-RUN apk add --no-cache docker-cli
+
+# Install Docker CLI
+RUN apt-get update && apt-get install -y docker.io

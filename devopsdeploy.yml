@@ -1,6 +1,6 @@
 - name: Deploy Java App
   hosts: localhost
-  connection: local  # This tells Ansible to use local execution instead of SSH
+  connection: local
   tasks:
     - name: Stop and remove old container
       command: docker rm -f java_container

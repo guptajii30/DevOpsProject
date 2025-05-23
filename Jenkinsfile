@@ -2,28 +2,27 @@ pipeline {
     agent any
     
     environment {
-        GIT_REPO = 'https://github.com/yourusername/devopsprj.git'
-        LOCAL_DIR = 'F:\\devopsprj'
-        IMAGE_NAME = 'javaimg:latest'
-        CONTAINER_NAME = 'java_container'
-        WSL_ANSIBLE_SCRIPT = '/mnt/e/devopsprj/devopsdeploy.yml'
+        // Use Jenkins workspace path converted to WSL format
+        WSL_WORKSPACE = '/mnt/c/ProgramData/Jenkins/.jenkins/workspace/DevOpsPipeline'
     }
-    
+
     stages {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Navigate to project directory
-                    bat "cd /d %LOCAL_DIR% && docker build -t %IMAGE_NAME% ."
+                    bat 'docker build -t javaimg .'
                 }
             }
         }
         
-        stage('Deploy with Ansible on WSL') {
+        stage('Deploy with Ansible') {
             steps {
                 script {
-                    // Execute Ansible playbook inside WSL
-                    bat "wsl ansible-playbook %WSL_ANSIBLE_SCRIPT%"
+                    // Execute as your WSL user with proper path
+                    bat """
+                    wsl -u ganesh -e bash -c \
+                    'cd ${WSL_WORKSPACE} && ansible-playbook devopsdeploy.yml'
+                    """
                 }
             }
         }

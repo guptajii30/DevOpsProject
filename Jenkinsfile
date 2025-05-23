@@ -17,12 +17,14 @@ pipeline {
             }
         }
         
-        stage('Deploy with Ansible on WSL') {
-            steps {
-                script {
-                    bat "wsl ansible-playbook ${WSL_ANSIBLE_SCRIPT}"
-                }
+        stage('Deploy with Ansible') {
+    steps {
+        script {
+            // Run Ansible inside a Docker container
+            docker.image('willhallonline/ansible:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock') {
+                sh 'ansible-playbook devopsdeploy.yml'
             }
         }
     }
+}
 }
